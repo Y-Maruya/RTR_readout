@@ -7,9 +7,9 @@ Make sure you have the following installed:
 - ROOT framework
 
 ## Compilation
-Before running the code, You should compile the code.  
-Of cource, you can use the root interpriter for executing the code, but I don't check how it works.  
-#### To compile the code ```A.c```, run the following command:
+Before running the source code, You should compile the source code.  
+Of cource, you can use the root interpriter for executing the source code, but I don't check how it works.  
+#### To compile the source code ```A.c```, run the following command:
 
 ```sh
 g++ A.c -o A `root-config --cflags --libs`
@@ -18,6 +18,15 @@ g++ A.c -o A `root-config --cflags --libs`
 ## Data Aquation and Derivation procedure
 
 ### 1. Acquire the validation data of MPPC by pulse laser.
+Turn off the ready bottum, Connect the lemo cable to pulse laser inside the beam area.  
+And then execute ```./easiroc``` inside ```software2```directly, then ```./udp``` inside ```software2/UDPcontrol2```.  
+Set the voltage of MPPC by ```1``` 10 V->20 V-> 30 V-> 40 V-> 50 V step by step, then check the actual voltage ```3```. 
+:::note alert
+Then write the voltage and to the time to experimental note. 
+::: 
+:::note alert
+絶対に、一回で50V に電圧を上げないでください。!!!!
+:::
 ### 2. Check the data by ```readout/val_v3.c```.
 Usage is 
 ```sh
