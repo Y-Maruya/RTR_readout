@@ -19,14 +19,16 @@ g++ A.c -o A `root-config --cflags --libs`
 
 ### 1. Acquire the validation data of MPPC by pulse laser.
 Turn off the ready bottum, Connect the lemo cable to pulse laser inside the beam area.  
-And then execute ```./easiroc``` inside ```software2```directly, then ```./udp``` inside ```software2/UDPcontrol2```.  
+Check the setup of pulse laser, the clock should set to ```1kHz```.  
+And then execute ```./easiroc``` inside ```software2```directly, then use another terminal, execute ```./udp``` inside ```software2/UDPcontrol2```.  
 Set the voltage of MPPC by ```1``` 10 V->20 V-> 30 V-> 40 V-> 50 V step by step, then check the actual voltage ```3```. 
-:::note alert
-Then write the voltage and to the time to experimental note. 
-::: 
-:::note alert
-絶対に、一回で50V に電圧を上げないでください。!!!!
-:::
+> [!IMPORTANT]
+> Then write the actulal voltage and the time to experimental note. 
+
+> [!IMPORTANT]
+> 絶対に、一回で50V に電圧を上げないでください。  
+
+Then move to the ```./easiroc``` terminal, and execute ```7``` and set the name of the output file like ```$DATADIR/val_before_run*```. And set the number of the data ```1000000```. 
 ### 2. Check the data by ```readout/val_v3.c```.
 Usage is 
 ```sh
