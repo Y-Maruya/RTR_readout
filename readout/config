@@ -1,0 +1,12 @@
+before_laser_val_filename laser_HV56p24_903_2.root
+after_laser_val_filename laser_HV56p24_903_2.root
+before_dark_val_filename dark_HV56p24_903_2.root
+after_dark_val_filename dark_HV56p24_903_2.root
+easiroc_data_filename /rhome/maruya/disklink/MPPC_kousei/data/ak_HASHI_HV56p24_0611_1
+fVoltage 56.24
+after_Voltage 56.24
+fCAEN false
+fCAENfilename wave0.txt wave1.txt
+fCAENPMTchannel 3 4
+fCAMACTDC = false
+fCAMACADC = false
