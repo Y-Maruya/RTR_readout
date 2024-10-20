@@ -7,8 +7,9 @@ Make sure you have the following installed:
 - ROOT framework
 
 ## Compilation
-
-To compile the code, run the following command:
+Before running the code, You should compile the code.  
+Of cource, you can use the root interpriter for executing the code, but I don't check how it works.  
+#### To compile the code ```A.c```, run the following command:
 
 ```sh
 g++ A.c -o A `root-config --cflags --libs`
