@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <numeric>
 #include <TROOT.h>
 #include <TFile.h>
 #include <TH1F.h>
@@ -47,6 +48,7 @@ class config_data{
         double fVoltage;
         double after_Voltage;
         bool fCAEN;
+        bool fCAENbinary;
         std::string fCAENfilename[2];
         int fCAENPMTchannel[2];
         bool fCAMACTDC;
@@ -63,6 +65,7 @@ config_data::config_data(){
     double fVoltage = 56.24;
     double after_Voltage = 56.24;
     bool fCAEN = false;
+    bool fCAENbinary = false;
     std::string fCAENfilename[2] = {"",""};
     int fCAENPMTchannel[2] = {0,1};
     bool fCAMACTDC = false;
@@ -100,15 +103,17 @@ void config_data::read_config(std::string filename){
         }else if(key == "after_Voltage"){
             iss >> after_Voltage;
         }else if(key == "fCAEN"){
-            iss >> fCAEN;
+            iss >> std::boolalpha >> fCAEN;
+        }else if(key == "fCAENbinary"){
+            iss >> std::boolalpha >> fCAENbinary;
         }else if(key == "fCAENfilename"){
             iss >> fCAENfilename[0] >> fCAENfilename[1];
         }else if(key == "fCAENPMTchannel"){
             iss >> fCAENPMTchannel[0] >> fCAENPMTchannel[1];
         }else if(key == "fCAMACTDC"){
-            iss >> fCAMACTDC;
+            iss >> std::boolalpha >> fCAMACTDC;
         }else if(key == "fCAMACADC"){
-            iss >> fCAMACADC;
+            iss >> std::boolalpha >> fCAMACADC;
         }
     }
 }
@@ -119,8 +124,13 @@ void treemake(config_data config){
         return;
     }
     std::ifstream ifs_caen[2];
-    ifs_caen[0]=ifstream(config.fCAENfilename[0]);
-    ifs_caen[1]=ifstream(config.fCAENfilename[1]);
+    if(config.fCAEN && config.fCAENbinary){
+        ifs_caen[0]=ifstream(config.fCAENfilename[0],std::ios::binary);
+        ifs_caen[1]=ifstream(config.fCAENfilename[1],std::ios::binary);
+    }else if( config.fCAEN){
+        ifs_caen[0]=ifstream(config.fCAENfilename[0]);
+        ifs_caen[1]=ifstream(config.fCAENfilename[1]);
+    }
     if((!ifs_caen[0] || !ifs_caen[1]) && config.fCAEN){
         std::cerr << "Error: file not opened" << std::endl;
         return;
@@ -136,10 +146,10 @@ void treemake(config_data config){
     int CAEN_PMTch_1;
     
     ULong64_t TimeStump_8ns;
-    std::vector<int> CAEN_wave0;
-    std::vector<int> CAEN_wave0_base;
-    std::vector<int> CAEN_wave1;
-    std::vector<int> CAEN_wave1_base;
+    // std::vector<int> CAEN_wave0;
+    // std::vector<int> CAEN_wave0_base;
+    // std::vector<int> CAEN_wave1;
+    // std::vector<int> CAEN_wave1_base;
     double CAEN_wave0_max;
     double CAEN_wave0_base_mean;
     double CAEN_wave1_max;
@@ -153,8 +163,8 @@ void treemake(config_data config){
         tree->Branch("CAEN_PMTch_0",&CAEN_PMTch_0,"CAEN_PMTch_0/I");
         tree->Branch("CAEN_PMTch_1",&CAEN_PMTch_1,"CAEN_PMTch_1/I");
         tree->Branch("TimeStump_8ns",&TimeStump_8ns,"TimeStump_8ns/l");
-        tree->Branch("CAEN_wave0",&CAEN_wave0);
-        tree->Branch("CAEN_wave1",&CAEN_wave1);
+        // tree->Branch("CAEN_wave0",&CAEN_wave0);
+        // tree->Branch("CAEN_wave1",&CAEN_wave1);
         tree->Branch("CAEN_wave0_base_mean",&CAEN_wave0_base_mean,"CAEN_wave0_base_mean/D");
         tree->Branch("CAEN_wave1_base_mean",&CAEN_wave1_base_mean,"CAEN_wave1_base_mean/D");
         tree->Branch("CAEN_wave0_max",&CAEN_wave0_max,"CAEN_wave0_max/D");
@@ -179,16 +189,40 @@ void treemake(config_data config){
         tree->Branch("CAMACADC_uTime",&CAMACADC_uTime,"CAMACADC_uTime/I");
     }
     event_number = 0;
-    while(!hoge.eof() || ((!ifs_caen[0].eof() || !ifs_caen[1].eof()) && config.fCAEN)){
+    int j =0;
+    while(!hoge.eof() && (((!ifs_caen[0].eof() || !ifs_caen[1].eof()) && config.fCAEN)|| config.fCAEN) && event_number < 50000){
+        if(event_number%1000==0){
+            std::cout << "event_number : " << event_number << std::endl;
+        }
         UInt_t val;
         hoge.read((char*)&val, sizeof(int));
-        if(config.fCAEN){
+        if(config.fCAEN && config.fCAENbinary){
+            std::cout << "not supported" << std::endl;
+        //     CAEN_PMTch_0 = config.fCAENPMTchannel[0];
+        //     CAEN_PMTch_1 = config.fCAENPMTchannel[1];
+        //     char buf[2];
+        //     ifs_caen[0].read(buf, 2);
+        //     unsigned int x = (buf[0] << 24); x = x >> 24;
+        //     unsigned int y = (buf[1] << 24); y = y >> 16;
+        //     int num = x + y;
+
+        //     while(j<CAEN_wavelength){
+
+        //     }
+        //     if(j<12){
+        //         j+=1;
+        //     }
+        }
+        if(config.fCAEN && !config.fCAENbinary){
+            CAEN_PMTch_0 = config.fCAENPMTchannel[0];
+            CAEN_PMTch_1 = config.fCAENPMTchannel[1];
             std::string buf;
             ifs_caen[0]>>buf>>buf>>CAEN_wavelength;
             ifs_caen[0]>>buf>>buf;
             ifs_caen[0]>>buf>>buf;
             int event_number_CAEN;
             ifs_caen[0]>>buf>>buf>>event_number_CAEN;
+            // std::cout << event_number_CAEN << std::endl;
             if(event_number_CAEN != event_number){
                 std::cerr << "Error: event number is not matched" << std::endl;
                 return;
@@ -199,15 +233,26 @@ void treemake(config_data config){
             getline(ifs_caen[0], buf);
             int j=0;
             std::string str_data;
+            int th = 10;
+            int wave0_min =4096;
+            int wave0_min_index = 0;
+            int sum0_base = 0;
+            int sum0_base_num = 0;
             while(j<CAEN_wavelength){
                 int maxadcd;
                 getline(ifs_caen[0],str_data);
                 stringstream ss(str_data);
                 ss>>maxadcd;
-                CAEN_wave0.push_back(maxadcd);
+                // CAEN_wave0.push_back(maxadcd);
+                if(maxadcd<wave0_min){
+                    wave0_min = maxadcd;
+                    wave0_min_index = j;
+                }
                 j++;
                 if(maxadcd<2048+th &&maxadcd>2048-th && j < CAEN_wavelength*3./10){
-                    CAEN_wave0_base.push_back(maxadcd);
+                    // CAEN_wave0_base.push_back(maxadcd);
+                    sum0_base += maxadcd;
+                    sum0_base_num++;
                 }
             }
             ifs_caen[1]>>buf>>buf>>CAEN_wavelength;
@@ -231,23 +276,33 @@ void treemake(config_data config){
             getline(ifs_caen[1], buf);
             getline(ifs_caen[1], buf);
             j=0;
+            int wave1_min =4096;
+            int wave1_min_index = 0;
+            int sum1_base = 0;
+            int sum1_base_num = 0;
             while(j<CAEN_wavelength){
                 int maxadcd;
                 getline(ifs_caen[1],str_data);
                 stringstream ss(str_data);
                 ss>>maxadcd;
-                CAEN_wave1.push_back(maxadcd);
+                if(maxadcd<wave1_min){
+                    wave1_min = maxadcd;
+                    wave1_min_index = j;
+                }
+                // CAEN_wave1.push_back(maxadcd);
                 j++;
                 if(maxadcd<2048+th &&maxadcd>2048-th && j < CAEN_wavelength*3./10){
-                    CAEN_wave1_base.push_back(maxadcd);
+                    // CAEN_wave1_base.push_back(maxadcd);
+                    sum1_base += maxadcd;
+                    sum1_base_num++;
                 }
             }
-            CAEN_wave0_base_mean = std::accumulate(CAEN_wave0_base.begin(), CAEN_wave0_base.end(), 0.0) / CAEN_wave0_base.size();
-            CAEN_wave1_base_mean = std::accumulate(CAEN_wave1_base.begin(), CAEN_wave1_base.end(), 0.0) / CAEN_wave1_base.size();
-            CAEN_wave0_max_index = std::distance(CAEN_wave0.begin(), std::min_element(CAEN_wave0.begin(), CAEN_wave0.end()));
-            CAEN_wave1_max_index = std::distance(CAEN_wave1.begin(), std::min_element(CAEN_wave1.begin(), CAEN_wave1.end()));
-            CAEN_wave0_max = CAEN_wave0_base_mean - (*std::min_element(CAEN_wave0.begin(), CAEN_wave0.end()));
-            CAEN_wave1_max = CAEN_wave1_base_mean - (*std::min_element(CAEN_wave1.begin(), CAEN_wave1.end()));
+            CAEN_wave0_base_mean = sum0_base/sum0_base_num;
+            CAEN_wave1_base_mean = sum1_base/sum1_base_num;
+            CAEN_wave0_max_index = wave0_min_index;
+            CAEN_wave1_max_index = wave1_min_index;
+            CAEN_wave0_max = CAEN_wave0_base_mean - wave0_min;
+            CAEN_wave1_max = CAEN_wave1_base_mean - wave1_min;
         }
         if(config.fCAMACTDC){
             std::string buf;

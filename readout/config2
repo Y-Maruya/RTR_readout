@@ -6,7 +6,7 @@ easiroc_data_filename /rhome/maruya/disklink/laser_grease/1023/7/laser_7_1023_16
 fVoltage 56.24
 after_Voltage 56.24
 fCAEN true
-fCAENfilename /rhome/maruya/disklink/laser_grease/1023/6/wave0.txt /rhome/maruya/disklink/laser_grease/1023/6/wave0.txt
+fCAENfilename /rhome/maruya/disklink/laser_grease/1023/11/wave0.txt /rhome/maruya/disklink/laser_grease/1023/11/wave0.txt
 fCAENPMTchannel 3 4
 fCAMACTDC = false
 fCAMACADC = false

@@ -23,9 +23,18 @@
 #include <TPad.h>
 #include <TLatex.h>
 using namespace std;
+double x_ch[64] ={
+  -3.5,-3.5,-3.5,-3.5,-2.5,-2.5,-2.5,-2.5,-1.5,-1.5,-1.5,-1.5,-0.5,-0.5,-0.5,-0.5,-3.5,-3.5,-3.5,-3.5,-2.5,-2.5,-2.5,-2.5,-1.5,-1.5,-1.5,-1.5,-0.5,-0.5,-0.5,-0.5,
+  3.5,3.5,3.5,3.5,2.5,2.5,2.5,2.5,1.5,1.5,1.5,1.5,0.5,0.5,0.5,0.5,
+  3.5,3.5,3.5,3.5,2.5,2.5,2.5,2.5,1.5,1.5,1.5,1.5,0.5,0.5,0.5,0.5};
+double y_ch[64] ={
+  2.5,3.5,1.5,0.5,3.5,2.5,0.5,1.5,2.5,3.5,1.5,0.5,3.5,2.5,0.5,1.5,
+  -1.5,-0.5,-2.5,-3.5,-0.5,-1.5,-3.5,-2.5,-1.5,-0.5,-2.5,-3.5,-0.5,-1.5,-3.5,-2.5,
+  1.5,0.5,2.5,3.5,0.5,1.5,3.5,2.5,1.5,0.5,2.5,3.5,0.5,1.5,3.5,2.5,
+  -2.5,-3.5,-1.5,-0.5,-3.5,-2.5,-0.5,-1.5,-2.5,-3.5,-1.5,-0.5,-3.5,-2.5,-0.5,-1.5};
 
 
-void val(string filename = "laser_5kHz30p8_HV56p22", string val_filename = "laser_HV56p24_903_2.root"){
+void val(string filename = "laser_5kHz30p8_HV56p22", string val_filename = "laser_HV56p24_903_2.root",int threshold = 850){
   gROOT->SetStyle("Plain");
   double mean = 0;
   double RMS = 0;
@@ -97,6 +106,8 @@ void val(string filename = "laser_5kHz30p8_HV56p22", string val_filename = "lase
   TFile* new_val_file = new TFile(val_filename.c_str(),"READ");
   new_val_file->cd();
   TH1F* hist2[64];
+  double n_L_true[64];
+  double n_L_true_err[64];
   for(int i = 0; i<64; ++i){
     hist2[i] = (TH1F*)new_val_file->Get(Form("ch%d",i));
     if(hist2[i] == NULL){
@@ -130,8 +141,43 @@ void val(string filename = "laser_5kHz30p8_HV56p22", string val_filename = "lase
     else if(i==63){histname = filename+".pdf)";}
     else{histname = filename+".pdf";}
     std::cout << histname << std::endl;
-    c1->SaveAs(histname.c_str(),"pdf"); 
+    c1->SaveAs(histname.c_str(),"pdf");
+    int n_D;
+    double err;
+    hist[i]->GetXaxis()->SetRangeUser(0,4096);
+    n_D=hist[i]->IntegralAndError(850,4096,err);
+    int n_L;
+    double err_L;
+    hist2[i]->GetXaxis()->SetRangeUser(0,4096);
+    n_L=hist2[i]->IntegralAndError(850,4096,err_L);
+    std::cout << "ch" << i << " : " << n_D << " : " << n_L << std::endl;
+    n_L_true[i] = (n_L - n_D/hist[i]->Integral(0,4096)*hist2[i]->Integral(0,4096))/hist2[i]->Integral(0,4096);
+    n_L_true_err[i] = sqrt(err_L*err_L + pow(err/hist[i]->Integral(0,4096)*hist2[i]->Integral(0,4096),2))/hist2[i]->Integral(0,4096);
   }
+  double x[64];
+  double xerr[64];
+  for(int i = 0; i<64; ++i){
+    x[i] = i;
+    xerr[i] = 0;
+  }
+  TGraphErrors* n_L_true_graph = new TGraphErrors(64,x,n_L_true,xerr,n_L_true_err);
+  n_L_true_graph->SetName("p_Laser");
+  n_L_true_graph->SetTitle("p_Laser");
+  n_L_true_graph->GetXaxis()->SetTitle("Channel");
+  n_L_true_graph->GetYaxis()->SetTitle("n_L_true");
+  n_L_true_graph->SetMarkerStyle(20);
+  n_L_true_graph->SetMarkerSize(1);
+  n_L_true_graph->SetMarkerColor(2);
+  TH2F*frame = new TH2F("2Dmap","",8,-4,4,8,-4,4);
+  frame->GetXaxis()->SetTitle("x");
+  frame->GetYaxis()->SetTitle("y");
+  for(int i = 0; i<64; ++i){
+    frame->Fill(x_ch[i],y_ch[i],n_L_true[i]);
+  }
+  frame->Draw("colz");
+  file->cd();
+  frame->Write();
+  n_L_true_graph->Write();
   new_val_file->Close();
   file->Close();
   return;
