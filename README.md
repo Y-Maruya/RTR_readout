@@ -53,3 +53,16 @@ Usage is
 ``` 
 root file is ommitted to the path where inputted easiroc raw data exists.
 
+### 9. Derivate the run data by ```readout/Deri.C```
+Usage is 
+```sh
+./Deri "path of config file"
+```
+to the data directly, some file is omiited.  
+ 
+1. *cut_value.png : 0.5 p.e.に対応する信号波高をbeforeとafterのそれぞれ計算した値である。
+2. *dark_rate.png : random triggerで取得したデータに対して、cut value 以上の波高を持つ、イベントが来る割合。
+3. *rate.png : run dataで取得したデータに対して、cut value 以上の波高を持つ、イベントが来る割合。
+4. *rate.root : 上記のplotを詰めたroot file  
+
+

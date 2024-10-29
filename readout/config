@@ -1,11 +1,11 @@
 before_laser_val_filename /rhome/maruya/disklink/MPPC_kousei/data/laser_HV56p24_903_2.root
 after_laser_val_filename /rhome/maruya/disklink/MPPC_kousei/data/laser_HV56p24_903_2.root
-before_dark_val_filename /rhome/maruya/disklink/MPPC_kousei/data/dark_HV56p24_903_2.root
-after_dark_val_filename /rhome/maruya/disklink/MPPC_kousei/data/dark_HV56p24_903_2.root
+before_dark_val_filename /rhome/maruya/disklink/laser_grease/1023/7/dark_4_1023_1451.root
+after_dark_val_filename /rhome/maruya/disklink/laser_grease/1023/7/dark_4_1023_1451.root
 easiroc_data_filename /rhome/maruya/disklink/laser_grease/1023/7/laser_7_1023_1600_25
 fVoltage 56.24
 after_Voltage 56.24
-fCAEN true
+fCAEN false
 fCAENfilename /rhome/maruya/disklink/laser_grease/1023/6/wave0.txt /rhome/maruya/disklink/laser_grease/1023/6/wave0.txt
 fCAENPMTchannel 3 4
 fCAMACTDC = false
