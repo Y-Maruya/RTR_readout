@@ -15,7 +15,7 @@
 using namespace std;
 
 
-const int MaxEventsLength = 5000; // 時間の長さの最大値
+const int MaxEventsLength =10000; // 時間の長さの最大値
 const int MaxEventsNum = 50000;
 void tree(int flag,Int_t Triggerstart_value,Int_t Triggerend_value, std::string file_dir){
     TFile*fout=new TFile(Form("%stree_%d.root",file_dir.c_str(),flag),"recreate");
@@ -54,8 +54,9 @@ void tree(int flag,Int_t Triggerstart_value,Int_t Triggerend_value, std::string 
     string ev =event ;
     string evi =ev+"(" ;
     string evf =ev + ")";
+    tree->Branch(Form("eNum_%d",flag),&eNum,"eNum/I");
     tree->Branch(Form("Leng_%d",flag),&Leng,"Leng/I");
-    tree->Branch(Form("TimeStump_%d",flag),&TimeStump,"TimeStump/I");
+    tree->Branch(Form("TimeStump_%d",flag),&TimeStump,"TimeStump/l");
     tree->Branch(Form("mean_%d",flag),&mean,"mean/D");
     tree->Branch(Form("hensa_%d",flag),&hensa,"hensa/D");
     tree->Branch(Form("trigger_%d",flag),&trigger,"trigger/I");
@@ -322,8 +323,8 @@ void tree(int flag,Int_t Triggerstart_value,Int_t Triggerend_value, std::string 
 
 int main(int argc, char *argv[]){
     std::string file_dir =argv[1];
-    Int_t Triggerstart_value_1 = 2000;
-    Int_t Triggerend_value_1 = 3000;
+    Int_t Triggerstart_value_1 = 4000;
+    Int_t Triggerend_value_1 = 6000;
     Int_t Triggerstart_value_2 = Triggerstart_value_1;
     Int_t Triggerend_value_2 = Triggerend_value_1;
     if(argc==3){
@@ -336,6 +337,6 @@ int main(int argc, char *argv[]){
         Triggerend_value_2 = atoi(argv[5]);
     }
     tree(0,Triggerstart_value_1,Triggerend_value_1,file_dir);
-    // tree(1,Triggerstart_value_2,Triggerend_value_2,file_dir);
+    tree(1,Triggerstart_value_2,Triggerend_value_2,file_dir);
     return 0;
 }
