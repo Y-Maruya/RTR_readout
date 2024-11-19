@@ -1,0 +1,12 @@
+before_laser_val_filename /media/kuzelab/HDD/run19/laser_after.root
+after_laser_val_filename /media/kuzelab/HDD/run19/laser_after.root
+before_dark_val_filename /media/kuzelab/HDD/run22/dark_after.root
+after_dark_val_filename /media/kuzelab/HDD/run22/dark_after.root
+easiroc_data_filename /media/kuzelab/HDD/run23/run
+fVoltage 56.24
+after_Voltage 56.24
+fCAEN false
+fCAENfilename /rhome/maruya/disklink/laser_grease/1023/6/wave0.txt /rhome/maruya/disklink/laser_grease/1023/6/wave0.txt
+fCAENPMTchannel 5 6
+fCAMACTDC = false
+fCAMACADC = false

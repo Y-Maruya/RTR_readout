@@ -70,7 +70,7 @@ void val(string filename = "laser_5kHz30p8_HV56p22", string valfilename = "laser
     hist[i]->GetYaxis()->SetTitle("Counts");
   }
   int event_num =0;
-  while(!hoge.eof()&& event_num<100){
+  while(!hoge.eof()&& event_num<10000){
     UInt_t val;
     hoge.read((char*)&val, sizeof(int));
     //    std::cout << std::hex << val << std::endl;
@@ -100,45 +100,47 @@ void val(string filename = "laser_5kHz30p8_HV56p22", string valfilename = "laser
     }
   }
   int NMAX=chhist2.size();
-  if(NMAX == 0){
-    std::cout<< "no event" << std::endl;
-    return;
-  }else if(NMAX == 1){
-    std::cout<< "only 1 event" << std::endl;
-    chhist2[0]->Write();
-    string histname;
-    gStyle->SetOptStat(0);
-    TCanvas *c1 = new TCanvas("c1","c1",1000,1000);
-          TText *text = new TText(0.7,0.93,Form("sum=%g",chhist2[0]->Integral()));
-      text->SetNDC();
-      text->SetTextSize(0.04);
-      chhist2[0]->Draw("colz");
-      text->Draw("same");
-    chhist2[0]->GetZaxis()->SetRangeUser(0,30);
-    histname = filename+"_2D.pdf";
-    c1->SaveAs(histname.c_str(),"pdf");
-  }else{
-    for(int i = 0; i< NMAX; i++){
-      chhist2[i]->Write();
-      string histname;
-      gStyle->SetOptStat(0);
-      TCanvas *c1 = new TCanvas("c1","c1",1000,1000);
-      TText *text = new TText(0.7,0.93,Form("sum=%g",chhist2[i]->Integral()));
-      text->SetNDC();
-      text->SetTextSize(0.04);
-      chhist2[i]->Draw("colz");
-      text->Draw("same");
-      chhist2[i]->GetZaxis()->SetRangeUser(0,30);
-      if(i==0){histname = filename+"_2D.pdf(";}
-      else if(i==NMAX-1){histname = filename+"_2D.pdf)";}
-      else{histname = filename+"_2D.pdf";}
-      c1->SaveAs(histname.c_str(),"pdf");
-    }
-  }
+  // if(NMAX == 0){
+  //   std::cout<< "no event" << std::endl;
+  //   return;
+  // }else if(NMAX == 1){
+  //   std::cout<< "only 1 event" << std::endl;
+  //   chhist2[0]->Write();
+  //   string histname;
+  //   gStyle->SetOptStat(0);
+  //   TCanvas *c1 = new TCanvas("c1","c1",1000,1000);
+  //         TText *text = new TText(0.7,0.93,Form("sum=%g",chhist2[0]->Integral()));
+  //     text->SetNDC();
+  //     text->SetTextSize(0.04);
+  //     chhist2[0]->Draw("colz");
+  //     text->Draw("same");
+  //   chhist2[0]->GetZaxis()->SetRangeUser(0,30);
+  //   histname = filename+"_2D.pdf";
+  //   c1->SaveAs(histname.c_str(),"pdf");
+  // }else{
+  //   for(int i = 0; i< NMAX; i++){
+  //     chhist2[i]->Write();
+  //     string histname;
+  //     gStyle->SetOptStat(0);
+  //     TCanvas *c1 = new TCanvas("c1","c1",1000,1000);
+  //     TText *text = new TText(0.7,0.93,Form("sum=%g",chhist2[i]->Integral()));
+  //     text->SetNDC();
+  //     text->SetTextSize(0.04);
+  //     chhist2[i]->Draw("colz");
+  //     text->Draw("same");
+  //     chhist2[i]->GetZaxis()->SetRangeUser(0,30);
+  //     if(i==0){histname = filename+"_2D.pdf(";}
+  //     else if(i==NMAX-1){histname = filename+"_2D.pdf)";}
+  //     else{histname = filename+"_2D.pdf";}
+  //     c1->SaveAs(histname.c_str(),"pdf");
+  //   }
+  // }
   TCanvas*c2 = new TCanvas("c2","c2",800,800);
   sumhist->Draw();
-  c2->SaveAs("sumhist.pdf");
-  file->Write();
+  std::string histnames = filename+"_sumhist.pdf";
+  c2->SaveAs(histnames.c_str(),"pdf");
+  // file->Write();
+  sumhist->Write();
   file->Close();
   val_file->Close();
   return;

@@ -190,10 +190,9 @@ void treemake(config_data config){
     }
     event_number = 0;
     int j =0;
-    while(!hoge.eof() && (((!ifs_caen[0].eof() || !ifs_caen[1].eof()) && config.fCAEN)|| config.fCAEN) && event_number < 50000){
-        if(event_number%1000==0){
+    while(!hoge.eof() && (((!ifs_caen[0].eof() || !ifs_caen[1].eof()) && config.fCAEN)|| !config.fCAEN) ){
             std::cout << "event_number : " << event_number << std::endl;
-        }
+        
         UInt_t val;
         hoge.read((char*)&val, sizeof(int));
         if(config.fCAEN && config.fCAENbinary){

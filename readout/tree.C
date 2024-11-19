@@ -15,8 +15,8 @@
 using namespace std;
 
 
-const int MaxEventsLength =10000; // 時間の長さの最大値
-const int MaxEventsNum = 50000;
+const int MaxEventsLength =1000; // 時間の長さの最大値
+const int MaxEventsNum = 1000000;
 void tree(int flag,Int_t Triggerstart_value,Int_t Triggerend_value, std::string file_dir){
     TFile*fout=new TFile(Form("%stree_%d.root",file_dir.c_str(),flag),"recreate");
     string file_name = file_dir + Form("wave%d.txt",flag);
@@ -145,7 +145,7 @@ void tree(int flag,Int_t Triggerstart_value,Int_t Triggerend_value, std::string 
             adc_vector.push_back(maxadcd);
             //cout<<maxadcd[j]<<endl;
             time_vector.push_back(j*4);
-            if(maxadcd<2048+th &&maxadcd>2048-th && j < 1500){
+            if(maxadcd<2048+th &&maxadcd>2048-th && j < 400){
                 base_vector[i]->Fill(maxadcd);
             }
             j++;

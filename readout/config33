@@ -1,0 +1,13 @@
+before_laser_val_filename /media/kuzelab/HDD/run33/laser_before.root
+after_laser_val_filename /media/kuzelab/HDD/run33/laser_after.root
+before_dark_val_filename /media/kuzelab/HDD/run33/dark_before.root
+after_dark_val_filename /media/kuzelab/HDD/run33/dark_after.root
+easiroc_data_filename /media/kuzelab/HDD/run33/run
+fVoltage 56.24
+after_Voltage 56.24
+fCAEN false
+fCAENbinary false
+fCAENfilename /media/kuzelab/HDD/run33/run1_wave/wave0.txt /media/kuzelab/HDD/run33/run1_wave/wave1.txt
+fCAENPMTchannel 5 6
+fCAMACTDC = false
+fCAMACADC = false

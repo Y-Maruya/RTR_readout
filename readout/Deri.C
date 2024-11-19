@@ -18,7 +18,16 @@
 #include <TBranch.h>
 #include <TH1F.h>
 #include <TCanvas.h>
-
+double cut = 6;
+double x_ch_hist[64] ={
+  -3.5,-3.5,-3.5,-3.5,-2.5,-2.5,-2.5,-2.5,-1.5,-1.5,-1.5,-1.5,-0.5,-0.5,-0.5,-0.5,-3.5,-3.5,-3.5,-3.5,-2.5,-2.5,-2.5,-2.5,-1.5,-1.5,-1.5,-1.5,-0.5,-0.5,-0.5,-0.5,
+  3.5,3.5,3.5,3.5,2.5,2.5,2.5,2.5,1.5,1.5,1.5,1.5,0.5,0.5,0.5,0.5,
+  3.5,3.5,3.5,3.5,2.5,2.5,2.5,2.5,1.5,1.5,1.5,1.5,0.5,0.5,0.5,0.5};
+double y_ch_hist[64] ={
+  2.5,3.5,1.5,0.5,3.5,2.5,0.5,1.5,2.5,3.5,1.5,0.5,3.5,2.5,0.5,1.5,
+  -1.5,-0.5,-2.5,-3.5,-0.5,-1.5,-3.5,-2.5,-1.5,-0.5,-2.5,-3.5,-0.5,-1.5,-3.5,-2.5,
+  1.5,0.5,2.5,3.5,0.5,1.5,3.5,2.5,1.5,0.5,2.5,3.5,0.5,1.5,3.5,2.5,
+  -2.5,-3.5,-1.5,-0.5,-3.5,-2.5,-0.5,-1.5,-2.5,-3.5,-1.5,-0.5,-3.5,-2.5,-0.5,-1.5};
 
 void Deri::Loop(config_data config)
 {
@@ -46,7 +55,7 @@ void Deri::Loop(config_data config)
 //    fChain->GetEntry(jentry);       //read all branches
 //by  b_branchname->GetEntry(ientry); //read only this branch
    if (fChain == 0) return;
-   gROOT->SetStyle("ATLAS");
+   // gROOT->SetStyle("ATLAS");
    Long64_t nentries = fChain->GetEntriesFast();
    TFile* before_laser_val_file = new TFile(config.before_laser_val_filename.c_str(),"READ");
    TFile* after_laser_val_file = new TFile(config.after_laser_val_filename.c_str(),"READ");
@@ -125,12 +134,32 @@ void Deri::Loop(config_data config)
          after_dark_val_hist_tmp->Delete();
       }
       TCanvas* c1 = new TCanvas("c1","c1",800,800);
+      TH2D* before_dark_rate_hist = new TH2D("before_dark_rate_hist","before_dark_rate_hist",8,-4,4,8,-4,4);
+      for(int i =0;i<64;++i){
+         if(i==44){
+            continue;
+         }
+         if(i == 29){
+            continue;
+         }
+         before_dark_rate_hist->Fill(x_ch_hist[i],y_ch_hist[i],before_dark_rate[i]);
+      }
       TGraphErrors* before_dark_rate_graph = new TGraphErrors(64,x_ch,before_dark_rate,x_ch_err,before_dark_rate_err);
       before_dark_rate_graph->SetTitle("dark rate before;channel;rate");
       before_dark_rate_graph->SetMarkerStyle(20);
       before_dark_rate_graph->SetMarkerSize(1.0);
       before_dark_rate_graph->SetMarkerColor(kRed);
       before_dark_rate_graph->Draw("AP");
+      TH2D* after_dark_rate_hist = new TH2D("after_dark_rate_hist","after_dark_rate_hist",8,-4,4,8,-4,4);
+      for(int i =0;i<64;++i){
+         if(i==44){
+            continue;
+         }
+         if(i == 29){
+            continue;
+         }
+         after_dark_rate_hist->Fill(x_ch_hist[i],y_ch_hist[i],after_dark_rate[i]);
+      }
       TGraphErrors* after_dark_rate_graph = new TGraphErrors(64,x_ch,after_dark_rate,x_ch_err,after_dark_rate_err);
       after_dark_rate_graph->SetTitle("dark rate after;channel;rate");
       after_dark_rate_graph->SetMarkerStyle(20);
@@ -143,35 +172,236 @@ void Deri::Loop(config_data config)
       c1->SaveAs(filename.c_str());
       filename = config.easiroc_data_filename+"_dark_rate.root";
       c1->SaveAs(filename.c_str());
+      TCanvas* c2 = new TCanvas("c2","c2",800,800);
+      before_dark_rate_hist->Draw("colz");
+      filename = config.easiroc_data_filename+"_before_dark_rate_hist.png";
+      c2->SaveAs(filename.c_str());
+      filename = config.easiroc_data_filename+"_before_dark_rate_hist.root";
+      c2->SaveAs(filename.c_str());
+      TCanvas* c3 = new TCanvas("c3","c3",800,800);
+      after_dark_rate_hist->Draw("colz");
+      filename = config.easiroc_data_filename+"_after_dark_rate_hist.png";
+      c3->SaveAs(filename.c_str());
+      filename = config.easiroc_data_filename+"_after_dark_rate_hist.root";
+      c3->SaveAs(filename.c_str());
    Long64_t nbytes = 0, nb = 0;
    int overcut_before[64] = {0};
    int overcut_after[64] = {0};
+   int overcut_before_withcut[64] = {0};
+   int overcut_after_withcut[64] = {0};
    double rate_before[64] = {0};
    double rate_after[64] = {0};
+   double rate_before_withcut[64] = {0};
+   double rate_after_withcut[64] = {0};
    double rate_before_err[64] = {0};
    double rate_after_err[64] = {0};
+   double rate_before_withcut_err[64] = {0};
+   double rate_after_withcut_err[64] = {0};
+   TH1D*before_sumhist = new TH1D("before_sumhist","before_sumhist",300,0,300);
+   TH1D*after_sumhist = new TH1D("after_sumhist","after_sumhist",300,0,300);
+   double before_sum_ch[64] = {0};
+   double after_sum_ch[64] = {0};
+   double before_sum_ch_withcut[64] = {0};
+   double after_sum_ch_withcut[64] = {0};
+   double n_event_before=0;
+   double n_event_after=0;
+   double n_event_before_withcut=0;
+   double n_event_after_withcut=0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
       Long64_t ientry = LoadTree(jentry);
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
       // if (Cut(ientry) < 0) continue;
       if(jentry%1000 == 0) std::cout << "Processing event " << jentry << std::endl;
+      double tmp_before=0;
+      double tmp_after=0;
       for(int i = 0; i<64; ++i){
          if(adc[i] > before_cut_value[i]){
             overcut_before[i]++;
+            tmp_before+= (adc[i]-before_laser_val_bias->Eval(i))/before_laser_val_gain->Eval(i);
+            // before_sumhist->Fill((adc[i]-before_laser_val_bias->Eval(i))/before_laser_val_gain->Eval(i));
          }
          if(adc[i] > after_cut_value[i]){
             overcut_after[i]++;
+            tmp_after+= (adc[i]-after_laser_val_bias->Eval(i))/after_laser_val_gain->Eval(i);
+            // after_sumhist->Fill((adc[i]-after_laser_val_bias->Eval(i))/after_laser_val_gain->Eval(i));
          }
-      } 
+      }
+      if(tmp_before < cut){
+         for(int i = 0; i<64; ++i){
+            if(adc[i] > before_cut_value[i]){
+               overcut_before_withcut[i]++;
+            }
+         }
+         n_event_before_withcut+=1;
+      }
+      if(tmp_after < cut){
+         for(int i = 0; i<64; ++i){
+            if(adc[i] > after_cut_value[i]){
+               overcut_after_withcut[i]++;
+            }
+         }
+         n_event_after_withcut+=1;
+      }
+      before_sumhist->Fill(tmp_before);
+      after_sumhist->Fill(tmp_after);
+      for(int i =0; i<64; ++i){
+         before_sum_ch[i] += (adc[i]-before_laser_val_bias->Eval(i))/before_laser_val_gain->Eval(i);
+         if(tmp_before < cut ){
+            before_sum_ch_withcut[i] += (adc[i]-before_laser_val_bias->Eval(i))/before_laser_val_gain->Eval(i);
+         }
+         after_sum_ch[i] += (adc[i]-after_laser_val_bias->Eval(i))/after_laser_val_gain->Eval(i);
+         if(tmp_after<cut){
+            after_sum_ch_withcut[i] += (adc[i]-after_laser_val_bias->Eval(i))/after_laser_val_gain->Eval(i);
+         }
+      }
    }
+   for(int i=0; i<64; ++i){
+      std::cout<< before_sum_ch[i] << " " << n_event_before << std::endl;
+      before_sum_ch[i] /= n_event_before;
+      std::cout<< before_sum_ch_withcut[i] << " " << n_event_before_withcut << std::endl;
+      before_sum_ch_withcut[i] /= n_event_before_withcut;
+      std::cout<< after_sum_ch[i] << " " << n_event_after << std::endl;
+      after_sum_ch[i] /= n_event_after;
+      std::cout<< after_sum_ch_withcut[i] << " " << n_event_after_withcut << std::endl;
+      after_sum_ch_withcut[i] /= n_event_after_withcut;
+   }
+   TH2D* before_sum_ch_hist = new TH2D("before_sum_ch_hist","before_sum_ch_hist",8,-4,4,8,-4,4);
+   TH2D* before_sum_ch_withcut_hist = new TH2D("before_sum_ch_withcut_hist","before_sum_ch_withcut_hist",8,-4,4,8,-4,4);
+   TH2D* after_sum_ch_hist = new TH2D("after_sum_ch_hist","after_sum_ch_hist",8,-4,4,8,-4,4);
+   TH2D* after_sum_ch_withcut_hist = new TH2D("after_sum_ch_withcut_hist","after_sum_ch_withcut_hist",8,-4,4,8,-4,4);
+   for(int i = 0; i<64; ++i){
+      if(i==44){
+         continue;
+      }
+      if(i == 29){
+         continue;
+      }
+      std::cout<<before_sum_ch[i]<<std::endl;
+      std::cout<<after_sum_ch[i]<<std::endl;
+      std::cout<<x_ch_hist[i]<<" "<<y_ch_hist[i]<<std::endl;
+      before_sum_ch_hist->Fill(x_ch_hist[i],y_ch_hist[i],before_sum_ch[i]);
+      before_sum_ch_withcut_hist->Fill(x_ch_hist[i],y_ch_hist[i],before_sum_ch_withcut[i]);
+      after_sum_ch_hist->Fill(x_ch_hist[i],y_ch_hist[i],after_sum_ch[i]);
+      after_sum_ch_withcut_hist->Fill(x_ch_hist[i],y_ch_hist[i],after_sum_ch_withcut[i]);
+   }
+   TCanvas* c31 = new TCanvas("c31","c31",800,800);
+   before_sum_ch_hist->Draw("colz");
+   std::string filename1 = config.easiroc_data_filename+"_before_sum_ch.png";
+   c31->SaveAs(filename1.c_str());
+   filename1 = config.easiroc_data_filename+"_before_sum_ch.root";
+   c31->SaveAs(filename1.c_str());
+   TCanvas* c4 = new TCanvas("c4","c4",800,800);
+   before_sum_ch_withcut_hist->Draw("colz");
+   filename1 = config.easiroc_data_filename+"_before_sum_ch_withcut.png";
+   c4->SaveAs(filename1.c_str());
+   filename1 = config.easiroc_data_filename+"_before_sum_ch_withcut.root";
+   c4->SaveAs(filename1.c_str());
+   TCanvas* c5 = new TCanvas("c5","c5",800,800);
+   after_sum_ch_hist->Draw("colz");
+   filename1 = config.easiroc_data_filename+"_after_sum_ch.png";
+   c5->SaveAs(filename1.c_str());
+   filename1 = config.easiroc_data_filename+"_after_sum_ch.root";
+   c5->SaveAs(filename1.c_str());
+   TCanvas* c6 = new TCanvas("c6","c6",800,800);
+   after_sum_ch_withcut_hist->Draw("colz");
+   filename1 = config.easiroc_data_filename+"_after_sum_ch_withcut.png";
+   c6->SaveAs(filename1.c_str());
+   filename1 = config.easiroc_data_filename+"_after_sum_ch_withcut.root";
+   c6->SaveAs(filename1.c_str());
+   TCanvas*c7 = new TCanvas("c7","c7",800,800);
+   before_sumhist->Draw();
+   filename1 = config.easiroc_data_filename+"_before_sum.png";
+   c7->SaveAs(filename1.c_str());
+   filename1 = config.easiroc_data_filename+"_before_sum.root";
+   c7->SaveAs(filename1.c_str());
+   TCanvas*c8 = new TCanvas("c8","c8",800,800);
+   after_sumhist->Draw();
+   filename1 = config.easiroc_data_filename+"_after_sum.png";
+   c8->SaveAs(filename1.c_str());
+   filename1 = config.easiroc_data_filename+"_after_sum.root";
+   c8->SaveAs(filename1.c_str());
+   filename1 = config.easiroc_data_filename+"_sumhist.root";
+   TFile* outfile_forsum = new TFile(filename1.c_str(),"RECREATE");
+   outfile_forsum->cd();
+   before_sumhist->Write();
+   after_sumhist->Write();
+   before_sum_ch_hist->Write();
+   before_sum_ch_withcut_hist->Write();
+   after_sum_ch_hist->Write();
+   after_sum_ch_withcut_hist->Write();
+   outfile_forsum->Close();
+   std::cout<<overcut_after_withcut[0]<<std::endl;
+   std::cout<<n_event_after_withcut<<std::endl;
    for(int i = 0; i<64; ++i){
       rate_before[i] = (double)overcut_before[i]/nentries-before_dark_rate[i];
       rate_after[i] = (double)overcut_after[i]/nentries-after_dark_rate[i];
+      rate_before_withcut[i] = (double)overcut_before_withcut[i]/n_event_before_withcut - before_dark_rate[i];
+      rate_after_withcut[i] = (double)overcut_after_withcut[i]/n_event_after_withcut - after_dark_rate[i];
       rate_before_err[i] = std::hypot(sqrt((double)overcut_before[i])/nentries,before_dark_rate_err[i]);
       rate_after_err[i] = std::hypot(sqrt((double)overcut_after[i])/nentries,after_dark_rate_err[i]);
+      rate_before_withcut_err[i] = std::hypot(sqrt((double)overcut_before_withcut[i])/n_event_before_withcut,before_dark_rate_err[i]);
+      rate_after_withcut_err[i] =std::hypot(sqrt((double)overcut_after_withcut[i])/n_event_after_withcut,after_dark_rate_err[i]);
    }
-   TCanvas* c2 = new TCanvas("c2","c2",800,800);
+   TH2D* rate_before_hist = new TH2D("rate_before_hist","rate_before_hist",8,-4,4,8,-4,4);
+   TH2D* rate_after_hist = new TH2D("rate_after_hist","rate_after_hist",8,-4,4,8,-4,4);
+   TH2D* rate_before_withcut_hist = new TH2D("rate_before_withcut_hist","rate_before_withcut_hist",8,-4,4,8,-4,4);
+   TH2D* rate_after_withcut_hist = new TH2D("rate_after_withcut_hist","rate_after_withcut_hist",8,-4,4,8,-4,4);
+   for(int i =0;i<64;++i){
+      if(i==44){
+         continue;
+      }
+      if(i == 29){
+         continue;
+      }
+      rate_before_hist->Fill(x_ch_hist[i],y_ch_hist[i],rate_before[i]);
+      rate_after_hist->Fill(x_ch_hist[i],y_ch_hist[i],rate_after[i]);
+      rate_before_withcut_hist->Fill(x_ch_hist[i],y_ch_hist[i],rate_before_withcut[i]);
+      rate_after_withcut_hist->Fill(x_ch_hist[i],y_ch_hist[i],rate_after_withcut[i]);
+   }
+   TCanvas* c10 = new TCanvas("c10","c10",800,800);
+   rate_before_hist->Draw("colz");
+   std::string filename10 = config.easiroc_data_filename+"_rate_before_hist.png";
+   c10->SaveAs(filename10.c_str());
+   filename10 = config.easiroc_data_filename+"_rate_before_hist.root";
+   c10->SaveAs(filename10.c_str());
+   TCanvas* c11 = new TCanvas("c11","c11",800,800);
+   rate_after_hist->Draw("colz");
+   std::string filename11 = config.easiroc_data_filename+"_rate_after_hist.png";
+   c11->SaveAs(filename11.c_str());
+   filename11 = config.easiroc_data_filename+"_rate_after_hist.root";
+   c11->SaveAs(filename11.c_str());
+   TCanvas* c12 = new TCanvas("c12","c12",800,800);
+   rate_before_withcut_hist->Draw("colz");
+   std::string filename12 = config.easiroc_data_filename+"_rate_before_withcut_hist.png";
+   c12->SaveAs(filename12.c_str());
+   filename12 = config.easiroc_data_filename+"_rate_before_withcut_hist.root";
+   c12->SaveAs(filename12.c_str());
+   TCanvas* c13 = new TCanvas("c13","c13",800,800);
+   rate_after_withcut_hist->Draw("colz");
+   std::string filename13 = config.easiroc_data_filename+"_rate_after_withcut_hist.png";
+   c13->SaveAs(filename13.c_str());
+   filename13 = config.easiroc_data_filename+"_rate_after_withcut_hist.root";
+   c13->SaveAs(filename13.c_str());
+   TCanvas* c20 = new TCanvas("c20","c20",800,800);
+   TGraphErrors* rate_before_withcut_graph = new TGraphErrors(64,x_ch,rate_before_withcut,x_ch_err,rate_before_withcut_err);
+   TGraphErrors* rate_after_withcut_graph = new TGraphErrors(64,x_ch,rate_after_withcut,x_ch_err,rate_after_withcut_err);
+   rate_before_withcut_graph->SetTitle("rate before with cut;channel;rate");
+   rate_before_withcut_graph->SetMarkerStyle(20);
+   rate_before_withcut_graph->SetMarkerSize(1.0);
+   rate_before_withcut_graph->SetMarkerColor(kRed);
+   rate_before_withcut_graph->Draw("AP");
+   rate_after_withcut_graph->SetTitle("rate after with cut;channel;rate");
+   rate_after_withcut_graph->SetMarkerStyle(20);
+   rate_after_withcut_graph->SetMarkerSize(1.0);
+   rate_after_withcut_graph->SetMarkerColor(kBlue);
+   rate_after_withcut_graph->Draw("P");
+   c20->BuildLegend();
+   std::string filename20 = config.easiroc_data_filename+"_rate_withcut.png";
+   c20->SaveAs(filename20.c_str());
+   filename20 = config.easiroc_data_filename+"_rate_withcut.root";
+   c20->SaveAs(filename20.c_str());
+   TCanvas* c21 = new TCanvas("c21","c21",800,800);
    TGraphErrors* rate_before_graph = new TGraphErrors(64,x_ch,rate_before,x_ch_err,rate_before_err);
    TGraphErrors* rate_after_graph = new TGraphErrors(64,x_ch,rate_after,x_ch_err,rate_after_err);
    rate_before_graph->SetTitle("rate before;channel;rate");
@@ -184,9 +414,9 @@ void Deri::Loop(config_data config)
    rate_after_graph->SetMarkerSize(1.0);
    rate_after_graph->SetMarkerColor(kBlue);
    rate_after_graph->Draw("P");
-   c2->BuildLegend();
+   c21->BuildLegend();
    std::string filename2 = config.easiroc_data_filename+"_rate.png";
-   c2->SaveAs(filename2.c_str());
+   c21->SaveAs(filename2.c_str());
    before_laser_val_file->Close();
    after_laser_val_file->Close();
    before_dark_val_file->Close();
@@ -195,14 +425,135 @@ void Deri::Loop(config_data config)
    TFile* outfile = new TFile(filename3.c_str(),"RECREATE");
    outfile->cd();
    c1->Write();
-   c2->Write();
+   c21->Write();
    before_dark_rate_graph->Write();
    after_dark_rate_graph->Write();
    rate_before_graph->Write();
    rate_after_graph->Write();
+   rate_before_hist->Write();
+   rate_after_hist->Write();
+   rate_before_withcut_graph->Write();
+   rate_after_withcut_graph->Write();
+   rate_before_withcut_hist->Write();
+   rate_after_withcut_hist->Write();
+
    outfile->Close();
 }
-
+void val(string filename = "laser_5kHz30p8_HV56p22", string valfilename = "laser_HV56p24_3.root"){
+  gROOT->SetStyle("Plain");
+  
+  double mean = 0;
+  double RMS = 0;
+  
+  std::ifstream hoge(filename,std::ios::binary);
+  if(!hoge.is_open()){
+    cout << "no file" << endl;
+    return;
+  }
+  string outfile = filename + "_sumhist.root";
+  TFile*file = new TFile(outfile.c_str(),"RECREATE");
+  std::cout<< "file open" << std::endl;
+  TFile*val_file = new TFile(valfilename.c_str(),"READ");
+  std::cout<< "val_file open" << std::endl;
+  TGraphErrors*gains = (TGraphErrors*)val_file->Get("gain");
+  TGraphErrors*biass = (TGraphErrors*)val_file->Get("bias");
+  if(gains == NULL || biass == NULL){
+    std::cout<< "val_TGraph Error" << std::endl;
+    return;
+  }
+  std::cout<< "val_TGraph Got" << std::endl;
+  file->cd();
+  TH1F *hist[64];
+  TH1D* sumhist = new TH1D("sumhist","sumhist",300,0,300);
+  TH2F* chhist = new TH2F("chhist","",64,0-0.5,64-0.5,1500,500,2000);
+  std::vector<TH2D*> chhist2;
+  for(int i = 0; i<64; ++i){
+    std::ostringstream _name;
+    _name << "ch" << i;
+    std::string hist_name = _name.str();
+    hist[i] = new TH1F(hist_name.c_str(), hist_name.c_str(), 4096, 0, 4096);
+    hist[i]->GetXaxis()->SetTitle("ADC count");
+    hist[i]->GetYaxis()->SetTitle("Counts");
+  }
+  int event_num =0;
+  while(!hoge.eof()&& event_num<10000){
+    UInt_t val;
+    hoge.read((char*)&val, sizeof(int));
+    //    std::cout << std::hex << val << std::endl;
+    
+    if(val == 0xffffea0c){
+      hoge.read((char*)&val, sizeof(int));
+      std::cout<< Form("event %d",event_num) << std::endl;
+      TH2D*chhist2_tmp = new TH2D(Form("event_%d",event_num),Form("event_%d",event_num),8,-4,4,8,-4,4);
+      for(int i = 0; i<65; ++i){
+       	hoge.read((char*)&val, sizeof(int));
+      	if(i>0){
+        	int buffer = val & 0xffff;
+          if(i-1 == 44){
+            continue;
+          }
+         if(i-1 == 29){
+            continue;
+          }
+         	hist[i-1]->Fill(buffer);
+        	chhist->Fill(i-1,buffer);
+          if((buffer-biass->Eval(i-1))/gains->Eval(i-1) > 0.5){
+            chhist2_tmp->Fill(x_ch_hist[i-1],y_ch_hist[i-1],(buffer-biass->Eval(i-1))/gains->Eval(i-1));
+          }
+      	}
+      }
+      chhist2.push_back(chhist2_tmp);
+      std::cout<< chhist2_tmp->Integral() << std::endl;
+      sumhist->Fill(chhist2_tmp->Integral());
+      event_num++;
+    }
+  }
+  int NMAX=chhist2.size();
+  // if(NMAX == 0){
+  //   std::cout<< "no event" << std::endl;
+  //   return;
+  // }else if(NMAX == 1){
+  //   std::cout<< "only 1 event" << std::endl;
+  //   chhist2[0]->Write();
+  //   string histname;
+  //   gStyle->SetOptStat(0);
+  //   TCanvas *c1 = new TCanvas("c1","c1",1000,1000);
+  //         TText *text = new TText(0.7,0.93,Form("sum=%g",chhist2[0]->Integral()));
+  //     text->SetNDC();
+  //     text->SetTextSize(0.04);
+  //     chhist2[0]->Draw("colz");
+  //     text->Draw("same");
+  //   chhist2[0]->GetZaxis()->SetRangeUser(0,30);
+  //   histname = filename+"_2D.pdf";
+  //   c1->SaveAs(histname.c_str(),"pdf");
+  // }else{
+  //   for(int i = 0; i< NMAX; i++){
+  //     chhist2[i]->Write();
+  //     string histname;
+  //     gStyle->SetOptStat(0);
+  //     TCanvas *c1 = new TCanvas("c1","c1",1000,1000);
+  //     TText *text = new TText(0.7,0.93,Form("sum=%g",chhist2[i]->Integral()));
+  //     text->SetNDC();
+  //     text->SetTextSize(0.04);
+  //     chhist2[i]->Draw("colz");
+  //     text->Draw("same");
+  //     chhist2[i]->GetZaxis()->SetRangeUser(0,30);
+  //     if(i==0){histname = filename+"_2D.pdf(";}
+  //     else if(i==NMAX-1){histname = filename+"_2D.pdf)";}
+  //     else{histname = filename+"_2D.pdf";}
+  //     c1->SaveAs(histname.c_str(),"pdf");
+  //   }
+  // }
+  TCanvas*c2 = new TCanvas("c2","c2",800,800);
+  sumhist->Draw();
+  std::string histnames = filename+"_sumhist.pdf";
+  c2->SaveAs(histnames.c_str(),"pdf");
+  // file->Write();
+  sumhist->Write();
+  file->Close();
+  val_file->Close();
+  return;
+}
 int main(int argc, char* argv[]){
    if(argc != 2){
       std::cout << "Usage: " << argv[0] << " <config file name>" << std::endl;
@@ -213,5 +564,6 @@ int main(int argc, char* argv[]){
    std::string filename = config.easiroc_data_filename+".root";
    Deri *d = new Deri(filename, config.fCAEN);
    d->Loop(config);
+   // val(config.easiroc_data_filename,config.before_laser_val_filename);
    return 0;
 }

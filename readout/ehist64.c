@@ -1,4 +1,4 @@
-void ehist64(string filename = "ak-MANNAKA-HV56P24"){
+void ehist64(string filename = "/media/kuzelab/HDD/run17/run"){
   gROOT->SetStyle("Plain");
   
   double mean = 0;

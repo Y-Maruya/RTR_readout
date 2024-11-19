@@ -29,10 +29,10 @@ Set the voltage of MPPC by ```1``` 10 V->20 V-> 30 V-> 40 V-> 50 V step by step,
 > 絶対に、一回で50V に電圧を上げないでください。  
 
 Then move to the ```./easiroc``` terminal, and execute ```7``` and set the name of the output file like ```$DATADIR/val_before_run*```. And set the number of the data ```1000000```. 
-### 2. Check the data by ```readout/val_v3.c```.
+### 2. Check the data by ```readout/val_v4.c```.
 Usage is 
 ```sh
-./val_v3 "path of validation data"
+./val_v4 "path of validation data"
 ``` 
 Please ensure all of the fit goes well and check how many channel of MPPC is not working by checking pdf or root.
 ### 3. Acquire the dark-noise validation data of MPPC by clock generator. 
